@@ -37,7 +37,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 Use ssl.RAND_bytes(num) to generate random numbers 
  (cryptographically strong pseudo-random generator)
 
-Add an interactive mode
 """
 
 import argparse
@@ -53,13 +52,13 @@ MIN_WORD_BANK = 1024
 def main ():
     """ main operation """
     args = parse_args()
-    words = read_word_list (args.word_list_file)
+    words = read_word_list (args)
     wordListLength = len(words)
     
     if args.verbose:
-        verbose_report(wordListLength, args.words)
+        verbose_report(wordListLength, args.numwords)
     
-    password = choose_words(words, args.words)
+    password = choose_words(words, args.numwords)
     output_password(password, wordListLength)
     
     
@@ -69,16 +68,21 @@ def parse_args ():
     parser.add_argument('word_list_file', 
     help='filename (with absolute path) to \
     file containing word list (one word per line)')
-    parser.add_argument('-w', '--words', default=4,  type=int, help='number of \
+    parser.add_argument('-n', '--numwords', default=4,  type=int, help='number of \
     words to use in the password (default is 4)' )
     parser.add_argument('-v', '--verbose', help="verbose output", 
                         action="store_true")
+    parser.add_argument('--min', default=1, type=int, 
+                        help='minimum number of letters per word')
+    parser.add_argument('--max', default=20, type=int, 
+                        help='maximum number of letters per word')
     
     args = parser.parse_args()
     validate_args(args)
     return args
- 
-def read_word_list (wordListFile):
+
+# 
+def read_word_list (args):
     """
     Open the file provided in the command-line options that contains the 
     set of all words to be pulled from for password generation.
@@ -88,17 +92,22 @@ def read_word_list (wordListFile):
     """
     words = []
     
+    # find all words comprised of lower-case letters between min and max 
+    # characters long
+    regex = re.compile(r'\b[a-z]{%i,%i}\b' % (args.min, args.max))
+    
     try:
-        with open(wordListFile, 'r') as f: 
+        with open(args.word_list_file, 'r') as f: 
             for line in f:
-                words_on_line = line.split()
-                for w in words_on_line:
-                    w = re.sub('[^a-zA-Z]','', w)
-                    w = w.lower()
-                    if w is not '\n' and w is not ' ' and w is not '':
-                        words.append(w)
-    except Exception:
-        sys.stderr.write('Unable to open wordlist file - exiting.\n')
+                line = line.lower()
+                # leave only whitespace and letters
+                line = re.sub(r'[^a-z\s]','', line)
+                matches = regex.finditer(line)
+                for m in matches:
+                    # add all words on this line to the word list
+                    words.append(m.group(0))
+    except IOError as e:
+        print "error({0}): {1}".format(e.errno, e.strerror)
         sys.exit(1)
     
     # Remove duplicate words
@@ -162,7 +171,7 @@ def output_password(password, wordListLength):
     
 def validate_args (args):
     """ Validates input arguments """
-    if args.words < 1:
+    if args.numwords < 1:
         sys.stderr.write('Invalid number of words for password\n')
         sys.exit(1)
     
