@@ -47,7 +47,7 @@ import sys
 from math import log, floor
 
 # Minimum recommended number of words to choose from for a secure password
-MIN_WORD_BANK = 1024   
+MIN_WORD_BANK = 900   
 
 def main ():
     """ main operation """
