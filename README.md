@@ -50,7 +50,7 @@ take approximately 8950 years to crack.
 ````
 
 ## Requirements
-Tested with Python 2.7.2
+Tested with Python 2.7.2 and Python 3.3
 
 ## License
 MIT Licensed
