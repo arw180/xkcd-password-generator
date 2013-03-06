@@ -107,7 +107,7 @@ def read_word_list (args):
                     # add all words on this line to the word list
                     words.append(m.group(0))
     except IOError as e:
-        print "error({0}): {1}".format(e.errno, e.strerror)
+        print ("error({0}): {1}".format(e.errno, e.strerror))
         sys.exit(1)
     
     # Remove duplicate words
